@@ -1,0 +1,4 @@
+.DS_Store
+.*swp
+*.exe
+aws-cli-federator
