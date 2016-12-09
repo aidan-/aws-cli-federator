@@ -26,6 +26,8 @@ type configuration struct {
 	profile string
 }
 
+var Version = "0.0.1"
+
 var c configuration //arguments
 var l *log.Logger
 
@@ -39,7 +41,7 @@ func init() {
 	flag.StringVar(&c.profile, "profile", "default", "set which AWS credential profile the temporary credentials should be written to. Defaults to 'default'")
 
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Usage of %s:\n", filepath.Base(os.Args[0]))
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
@@ -84,6 +86,11 @@ func (c configuration) matchAccount() (*ini.Section, bool) {
 
 func main() {
 	flag.Parse()
+
+	if *c.version {
+		fmt.Fprintf(os.Stderr, "%s version %s\n", filepath.Base(os.Args[0]), Version)
+		os.Exit(0)
+	}
 
 	l = log.New(ioutil.Discard, "", log.LstdFlags)
 	if *c.verbose {
