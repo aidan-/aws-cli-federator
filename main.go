@@ -51,7 +51,7 @@ func (c *configuration) loadConfigurationFile() error {
 	if c.path == "" {
 		usr, err := user.Current()
 		if err != nil {
-			fmt.Printf("Error: Unable to get current user information: %s\n", err)
+			fmt.Printf("ERROR: Unable to get current user information: %s\n", err)
 			os.Exit(1)
 		}
 
@@ -102,7 +102,7 @@ func main() {
 	}
 
 	if err := c.loadConfigurationFile(); err != nil {
-		fmt.Printf("Unable to parse configuration file: %s\n", err)
+		fmt.Printf("ERROR: Unable to parse configuration file: %s\n", err)
 		os.Exit(1)
 	}
 
