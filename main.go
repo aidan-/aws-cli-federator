@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/aidan-/aws-cli-federator/federator"
@@ -38,7 +39,7 @@ func init() {
 	flag.StringVar(&c.path, "path", "", "set path to aws-federator configuration")
 	flag.StringVar(&c.account, "account", "", "set which AWS account configuration should be used")
 	flag.StringVar(&c.account, "acct", "", "set which AWS account configuration should be used (shorthand)")
-	flag.StringVar(&c.profile, "profile", "default", "set which AWS credential profile the temporary credentials should be written to. Defaults to 'default'")
+	flag.StringVar(&c.profile, "profile", "", "set which AWS credential profile the temporary credentials should be written to. Defaults to 'default'")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", filepath.Base(os.Args[0]))
@@ -124,7 +125,7 @@ func main() {
 		user = acct.Key("username").String()
 	} else {
 		reader := bufio.NewReader(os.Stdin)
-		fmt.Print("Enter Username: ")
+		fmt.Fprint(os.Stderr, "Enter Username: ")
 		u, _ := reader.ReadString('\n')
 		user = strings.TrimSpace(u)
 	}
@@ -134,7 +135,7 @@ func main() {
 	if acct.HasKey("password") {
 		pass = acct.Key("password").String()
 	} else {
-		fmt.Print("Enter Password: ")
+		fmt.Fprint(os.Stderr, "Enter Password: ")
 		var err error
 		p, err := gopass.GetPasswd()
 		if err != nil {
@@ -220,14 +221,29 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := WriteAWSCredentials(creds, c.profile); err != nil {
-		fmt.Fprintf(os.Stderr, "ERROR: Failed to write credentials: %s", err)
-		os.Exit(1)
-	}
+	fmt.Fprintln(os.Stderr, "-------------------------------------------------------")
+	// output temporary credentials to stdout instead of writing to credentials file
+	if c.profile == "" {
+		fmt.Fprintf(os.Stderr, "Temporary credentials successfully generated. Set the following environment variables to being using them:\n\n")
+		if runtime.GOOS == "windows" {
+			fmt.Printf("set AWS_ACCESS_KEY_ID=%s\n", creds.AccessKeyId)
+			fmt.Printf("set AWS_SECRET_ACCESS_KEY=%s\n", creds.SecretAccessKey)
+			fmt.Printf("set AWS_SESSION_TOKEN=%s\n", creds.SessionToken)
+		} else {
+			fmt.Printf("export AWS_ACCESS_KEY_ID=%s\n", creds.AccessKeyId)
+			fmt.Printf("export AWS_SECRET_ACCESS_KEY=%s\n", creds.SecretAccessKey)
+			fmt.Printf("export AWS_SESSION_TOKEN=%s\n", creds.SessionToken)
+		}
+	} else {
+		if err := WriteAWSCredentials(creds, c.profile); err != nil {
+			fmt.Fprintf(os.Stderr, "ERROR: Failed to write credentials: %s", err)
+			os.Exit(1)
+		}
 
-	fmt.Println("-------------------------------------------------------\n")
-	fmt.Fprintf(os.Stderr, "Temporary credentials successfully saved to credential profile '%s'.\nYou can use these credentials with the AWS CLI by including the '--profile %s' flag.\n", c.profile, c.profile)
-	fmt.Fprintf(os.Stderr, "They will remain valid until %s\n", creds.Expiration.String())
+		fmt.Fprintf(os.Stderr, "Temporary credentials successfully saved to credential profile '%s'.\nYou can use these credentials with the AWS CLI by including the '--profile %s' flag.\n", c.profile, c.profile)
+
+	}
+	fmt.Fprintf(os.Stderr, "\nThese credentials will remain valid until %s\n", creds.Expiration.String())
 }
 
 func WriteAWSCredentials(c federator.Credentials, p string) error {
