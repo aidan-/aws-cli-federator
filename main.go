@@ -51,7 +51,7 @@ func (c *configuration) loadConfigurationFile() error {
 	if c.path == "" {
 		usr, err := user.Current()
 		if err != nil {
-			fmt.Printf("ERROR: Unable to get current user information: %s\n", err)
+			fmt.Fprintf(os.Stderr, "ERROR: Unable to get current user information: %s\n", err)
 			os.Exit(1)
 		}
 
@@ -102,18 +102,18 @@ func main() {
 	}
 
 	if err := c.loadConfigurationFile(); err != nil {
-		fmt.Printf("ERROR: Unable to parse configuration file: %s\n", err)
+		fmt.Fprintf(os.Stderr, "ERROR: Unable to parse configuration file: %s\n", err)
 		os.Exit(1)
 	}
 
 	acct, found := c.matchAccount()
 	if !found {
-		fmt.Printf("ERROR: Could not find configuration matching provided account name '%s'\n", c.account)
+		fmt.Fprintf(os.Stderr, "ERROR: Could not find configuration matching provided account name '%s'\n", c.account)
 		os.Exit(1)
 	}
 
 	if !acct.HasKey("sp_identity_url") {
-		fmt.Printf("ERROR: Account configuration '%s' does not have an 'sp_identity_url' defined\n", c.account)
+		fmt.Fprintf(os.Stderr, "ERROR: Account configuration '%s' does not have an 'sp_identity_url' defined\n", c.account)
 		os.Exit(1)
 	}
 	spIdentityURL := acct.Key("sp_identity_url").String()
@@ -138,7 +138,7 @@ func main() {
 		var err error
 		p, err := gopass.GetPasswd()
 		if err != nil {
-			fmt.Printf("ERROR: Could not get password: %s\n", err)
+			fmt.Fprintf(os.Stderr, "ERROR: Could not get password: %s\n", err)
 			os.Exit(1)
 		}
 		pass = string(p)
@@ -147,18 +147,18 @@ func main() {
 
 	aws, err := federator.New(user, pass, spIdentityURL)
 	if err != nil {
-		fmt.Printf("ERROR: Failed to initialize federator: %s\n", err)
+		fmt.Fprintf(os.Stderr, "ERROR: Failed to initialize federator: %s\n", err)
 		os.Exit(1)
 	}
 
 	if err = aws.Login(); err != nil {
-		fmt.Printf("ERROR: Authentication failure: %s\n", err)
+		fmt.Fprintf(os.Stderr, "ERROR: Authentication failure: %s\n", err)
 		os.Exit(1)
 	}
 
 	roles, err := aws.GetRoles()
 	if err != nil {
-		fmt.Printf("ERROR: Could not retrieve roles: %s\n", err)
+		fmt.Fprintf(os.Stderr, "ERROR: Could not retrieve roles: %s\n", err)
 	}
 
 	var roleToAssume federator.Role
@@ -171,7 +171,7 @@ func main() {
 		}
 		if roleToAssume == "" {
 			//couldn't find the role
-			fmt.Printf("ERROR: Unable to find role '%s'.  Perhaps your federator configuration is incorrect?\n", acct.Key("assume_role").String())
+			fmt.Fprintf(os.Stderr, "ERROR: Unable to find role '%s'.  Perhaps your federator configuration is incorrect?\n", acct.Key("assume_role").String())
 			os.Exit(1)
 		}
 	} else {
@@ -183,28 +183,28 @@ func main() {
 				for n, role := range roles {
 					if accountMap.HasKey(role.AccountId()) {
 						an := accountMap.Key(role.AccountId()).String()
-						fmt.Printf("%d) %s:role/%s\n", n+1, an, role.RoleName())
+						fmt.Fprintf(os.Stderr, "%d) %s:role/%s\n", n+1, an, role.RoleName())
 					} else {
-						fmt.Printf("%d) %s\n", n+1, role.RoleArn())
+						fmt.Fprintf(os.Stderr, "%d) %s\n", n+1, role.RoleArn())
 					}
 				}
 			} else {
 				for n, role := range roles {
-					fmt.Printf("%d) %s\n", n+1, role.RoleArn())
+					fmt.Fprintf(os.Stderr, "%d) %s\n", n+1, role.RoleArn())
 				}
 			}
 			var i int
 
-			fmt.Printf("Enter the ID# of the role you want to assume: ")
+			fmt.Fprintf(os.Stderr, "Enter the ID# of the role you want to assume: ")
 
 			_, err = fmt.Scanf("%d", &i)
 			if err != nil {
-				fmt.Printf("ERROR: Invalid selection made.\n")
+				fmt.Fprintf(os.Stderr, "ERROR: Invalid selection made.\n")
 				os.Exit(1)
 			}
 
 			if i > len(roles)+1 {
-				fmt.Printf("ERROR: Invalid ID selection, but in range from %d to %d.\n", 1, len(roles)+1)
+				fmt.Fprintf(os.Stderr, "ERROR: Invalid ID selection, but in range from %d to %d.\n", 1, len(roles)+1)
 				os.Exit(1)
 			}
 
@@ -216,18 +216,18 @@ func main() {
 	l.Printf("Attempting to AssumeRoleWithSAML\n")
 	creds, err := aws.AssumeRole(roleToAssume)
 	if err != nil {
-		fmt.Printf("ERROR: Failed to assume role: %s", err)
+		fmt.Fprintf(os.Stderr, "ERROR: Failed to assume role: %s", err)
 		os.Exit(1)
 	}
 
 	if err := WriteAWSCredentials(creds, c.profile); err != nil {
-		fmt.Printf("ERROR: Failed to write credentials: %s", err)
+		fmt.Fprintf(os.Stderr, "ERROR: Failed to write credentials: %s", err)
 		os.Exit(1)
 	}
 
 	fmt.Println("-------------------------------------------------------\n")
-	fmt.Printf("Temporary credentials successfully saved to credential profile '%s'.\nYou can use these credentials with the AWS CLI by including the '--profile %s' flag.\n", c.profile, c.profile)
-	fmt.Printf("They will remain valid until %s\n", creds.Expiration.String())
+	fmt.Fprintf(os.Stderr, "Temporary credentials successfully saved to credential profile '%s'.\nYou can use these credentials with the AWS CLI by including the '--profile %s' flag.\n", c.profile, c.profile)
+	fmt.Fprintf(os.Stderr, "They will remain valid until %s\n", creds.Expiration.String())
 }
 
 func WriteAWSCredentials(c federator.Credentials, p string) error {
