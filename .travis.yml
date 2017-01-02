@@ -1,0 +1,19 @@
+language: go
+go:
+- 1.7.x
+before_deploy: "make dist"
+deploy:
+  provider: releases
+  api_key:
+    secure: A2+gjQ+di/QJorIDZTnTXaG+sOzfE8NxeHRkIYKFoFj0cXs1qEuvudRm3QZgiBBphwDbN2NI7dcOTf50ES+08w3Lht/vXj3maPwuxMnPOgugwLbDICkFqzF0T8+uTFNsneSYY0leHCadBPEacJaNK9oZkSyTXkmnR5SPxgYQDLcgylt0rqJvnqLyBHV09U0NTDGpANmPPN+lvo/++Nk9JBwpnoHw3qgW0CH9xE0kXzRCc03YnYq7w9SPdtRDxrEDfYyA3+sXWIiIIqADV4+a0q3fyOpCKcuS+W9StYBSEeH4/dpvPDuPkpNxaiAWKOAEFSO3NulG141aoxKKL5nuhZcSh/ILojvM/vMgSyi3TYocKwA5guGcJgWY0JeEagKzFU6PJveA6sWdD8qopDPiEFEimHU7AmJgRezVjkk4Z/DJO1/8k4ORRLoYWzaFt9w/zO3/OCJERrAJ8mYNL/TgWZ1u1u5q7WF4LKTPgHKgrpgfTGK1MRzjr1ZQN44AUANN2RZ+DSkEt7/bv5fG4uJ27r3a7Ml+wALeIhDc0+KVtLTN5rHKeiita8Z4bmE6bwCSWOYtCRBVchiGCtkBNTHVgq2V21+TV9k4SDexZPMhB/zddFlOiQ0vU25Y5iyq0ltGlNTbIutqlpMxAPERmsTdy4XjFEZIBFwKQw5rxAwq7TE=
+  file: 
+    - build/aws-cli-federator_darwin_386/aws-cli-federator_darwin_386.zip
+    - build/aws-cli-federator_darwin_amd64/aws-cli-federator_darwin_amd64.zip
+    - build/aws-cli-federator_linux_386/aws-cli-federator_linux_386.zip
+    - build/aws-cli-federator_linux_amd64/aws-cli-federator_linux_amd64.zip
+    - build/aws-cli-federator_windows_386/aws-cli-federator_windows_386.zip
+    - build/aws-cli-federator_windows_amd64/aws-cli-federator_windows_amd64.zip
+  on:
+    repo: aidan-/aws-cli-federator
+    branch: travis-ci
+    tags: true
