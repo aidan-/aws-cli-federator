@@ -2,4 +2,4 @@
 .*swp
 *.exe
 aws-cli-federator
-./build/*
+build/*
