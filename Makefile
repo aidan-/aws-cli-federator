@@ -18,7 +18,7 @@ dist: release
 
 .PHONY: build
 build:
-	mkdir build
+	mkdir -p build
 	go build -v -o build/${EXECUTABLE}
 
 .PHONY: release
@@ -26,7 +26,7 @@ release: clean release-build
 
 .PHONY: release-build
 release:
-	mkdir build
+	mkdir -p build
 	gox -os="linux darwin windows" -arch="386 amd64" -output="build/{{.Dir}}_{{.OS}}_{{.Arch}}/aws-cli-federator"
 	for dir in `ls build/`; do	\
 		[ -e "build/$${dir}/$${dir}.zip" ] ||	\
