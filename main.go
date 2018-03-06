@@ -113,6 +113,17 @@ func main() {
 		os.Exit(1)
 	}
 
+	// get key duration, defaults to 3600
+	var duration = int64(3600)
+	if acct.HasKey("duration") {
+		var err error
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "ERROR: Could not get duration: %s\n", err)
+			os.Exit(1)
+		}
+		duration, err = acct.Key("duration").Int64()
+	}
+
 	if !acct.HasKey("sp_identity_url") {
 		fmt.Fprintf(os.Stderr, "ERROR: Account configuration '%s' does not have an 'sp_identity_url' defined\n", c.account)
 		os.Exit(1)
@@ -215,7 +226,7 @@ func main() {
 
 	l.Printf("User has selected ARN: %s\n", roleToAssume)
 	l.Printf("Attempting to AssumeRoleWithSAML\n")
-	creds, err := aws.AssumeRole(roleToAssume)
+	creds, err := aws.AssumeRole(roleToAssume, duration)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: Failed to assume role: %s", err)
 		os.Exit(1)

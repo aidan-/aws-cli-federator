@@ -103,16 +103,17 @@ func (a *Federator) GetRoles() ([]Role, error) {
 	return r, nil
 }
 
-func (a *Federator) AssumeRole(r Role) (Credentials, error) {
+func (a *Federator) AssumeRole(r Role, duration int64) (Credentials, error) {
 	if a.samlResponse == nil {
 		return Credentials{}, fmt.Errorf("You must call Login before assuming a role")
 	}
 
 	svc := sts.New(session.New())
 	params := &sts.AssumeRoleWithSAMLInput{
-		PrincipalArn:  aws.String(r.PrincipalArn()),
-		RoleArn:       aws.String(r.RoleArn()),
-		SAMLAssertion: aws.String(a.samlResponse64),
+		DurationSeconds: aws.Int64(duration),
+		PrincipalArn:    aws.String(r.PrincipalArn()),
+		RoleArn:         aws.String(r.RoleArn()),
+		SAMLAssertion:   aws.String(a.samlResponse64),
 	}
 
 	resp, err := svc.AssumeRoleWithSAML(params)

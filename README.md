@@ -15,6 +15,11 @@ Before you can start generating temporary credentials, you'll need to create a b
 sp_identity_url = <url to IDP initiated SP login>
 ```
 
+You can overwrite the default one hour key expiry duration in the configuration.
+```
+duration = <new duration in seconds>
+```
+
 You can then generate temporary credentials by running the `aws-cli-federator` utility:
 
 ```
