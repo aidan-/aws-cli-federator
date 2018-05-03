@@ -122,6 +122,10 @@ func main() {
 			os.Exit(1)
 		}
 		duration, err = acct.Key("duration").Int64()
+		if duration > 43200 || duration < 900 {
+			fmt.Fprintf(os.Stderr, "ERROR: Duration needs to be a value in the range between 900 and 43200\n")
+			os.Exit(1)
+		}
 	}
 
 	if !acct.HasKey("sp_identity_url") {

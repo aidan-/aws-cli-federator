@@ -41,7 +41,7 @@ export AWS_SESSION_TOKEN=<redacted>
 These credentials will remain valid until 2017-01-03 03:29:22 +0000 UTC
 ```
 
-If you log into multiple accounts using different IDP URL's, you can add multiple `sp_identity_url`'s (under unique section names) and request credentials like so:
+If you log into multiple accounts using different IDP URL's or session expiry times, you can add multiple `sp_identity_url`'s or `duration`'s (under unique section names) and request credentials like so:
 
 ```
 $ aws-cli-federator -account <account name>
