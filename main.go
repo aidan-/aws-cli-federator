@@ -232,7 +232,7 @@ func main() {
 	l.Printf("Attempting to AssumeRoleWithSAML\n")
 	creds, err := aws.AssumeRole(roleToAssume, duration)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "ERROR: Failed to assume role: %s", err)
+		fmt.Fprintf(os.Stderr, "ERROR: Failed to assume role: %s\n", err)
 		os.Exit(1)
 	}
 
