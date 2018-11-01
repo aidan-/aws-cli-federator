@@ -10,11 +10,12 @@ import (
 	"os/user"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 
 	"github.com/aidan-/aws-cli-federator/federator"
+	"github.com/go-ini/ini"
 	"github.com/howeyc/gopass"
-	"gopkg.in/ini.v1"
 )
 
 type configuration struct {
@@ -179,23 +180,43 @@ func main() {
 		if len(roles) == 1 {
 			roleToAssume = roles[0]
 		} else {
-			accountMap, err := c.cfg.GetSection("account_map")
+			roleMap := make(map[string]string) // mapping of pretty names to roles
+			var printableRoles []string        // slice for sorting matched pretty names
+			var unmatchedRoles []string        // slice for sorting unmatched pretty names
+
+			// iterate over available roles to build up a map of 'printable role name' -> role arn
+			// capture the key names in string arrays for order sorting
+			accountMap, err := c.cfg.GetSection("account_map") // mapping of accountId's to pretty names
 			if err == nil {
-				for n, role := range roles {
+				for _, role := range roles {
 					if accountMap.HasKey(role.AccountId()) {
 						an := accountMap.Key(role.AccountId()).String()
-						fmt.Fprintf(os.Stderr, "%d) %s:role/%s\n", n+1, an, role.RoleName())
+						roleMap[fmt.Sprintf("%s:role/%s", an, role.RoleName())] = role.RoleArn()
+						printableRoles = append(printableRoles, fmt.Sprintf("%s:role/%s", an, role.RoleName()))
 					} else {
-						fmt.Fprintf(os.Stderr, "%d) %s\n", n+1, role.RoleArn())
+						roleMap[fmt.Sprintf("%s", role.RoleArn())] = role.RoleArn()
+						unmatchedRoles = append(unmatchedRoles, role.RoleArn())
 					}
 				}
 			} else {
-				for n, role := range roles {
-					fmt.Fprintf(os.Stderr, "%d) %s\n", n+1, role.RoleArn())
+				for _, role := range roles {
+					roleMap[fmt.Sprintf("%s", role.RoleArn())] = role.RoleArn()
 				}
 			}
-			var i int
 
+			// sort the role keys alphabetically and append the unmatchedRoles to the printableRoles array to ensure they appear last
+			sort.Strings(printableRoles)
+			sort.Strings(unmatchedRoles)
+
+			for _, k := range unmatchedRoles {
+				printableRoles = append(printableRoles, k)
+			}
+
+			for n, r := range printableRoles {
+				fmt.Fprintf(os.Stderr, "%d) %s\n", n+1, r)
+			}
+
+			var i int // user selection
 			fmt.Fprintf(os.Stderr, "Enter the ID# of the role you want to assume: ")
 
 			_, err = fmt.Scanf("%d", &i)
@@ -209,7 +230,7 @@ func main() {
 				os.Exit(1)
 			}
 
-			roleToAssume = roles[i-1]
+			roleToAssume = federator.Role(roleMap[printableRoles[i-1]])
 		}
 	}
 
