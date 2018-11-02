@@ -25,6 +25,7 @@ type configuration struct {
 
 	account string
 	profile string
+	duration int64
 }
 
 var Version = "1.0.0"
@@ -40,6 +41,7 @@ func init() {
 	flag.StringVar(&c.account, "account", "", "set which AWS account configuration should be used")
 	flag.StringVar(&c.account, "acct", "", "set which AWS account configuration should be used (shorthand)")
 	flag.StringVar(&c.profile, "profile", "", "set which AWS credential profile the temporary credentials should be written to. Defaults to 'default'")
+	flag.Int64Var(&c.duration, "duration", int64(3600), "sets the duration of the CLI credentials.")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", filepath.Base(os.Args[0]))
@@ -126,6 +128,9 @@ func main() {
 			fmt.Fprintf(os.Stderr, "ERROR: Duration needs to be a value in the range between 900 and 43200\n")
 			os.Exit(1)
 		}
+	}
+	if (c.duration != int64(3600)) {
+		duration = c.duration;
 	}
 
 	if !acct.HasKey("sp_identity_url") {
