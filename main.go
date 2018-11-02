@@ -41,7 +41,7 @@ func init() {
 	flag.StringVar(&c.account, "account", "", "set which AWS account configuration should be used")
 	flag.StringVar(&c.account, "acct", "", "set which AWS account configuration should be used (shorthand)")
 	flag.StringVar(&c.profile, "profile", "", "set which AWS credential profile the temporary credentials should be written to. Defaults to 'default'")
-	flag.Int64Var(&c.duration, "duration", int64(3600), "sets the duration of the CLI credentials.")
+	flag.Int64Var(&c.duration, "duration", int64(-1), "sets the duration of the CLI credentials. Defaults to 3600.")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", filepath.Base(os.Args[0]))
@@ -117,20 +117,20 @@ func main() {
 
 	// get key duration, defaults to 3600
 	var duration = int64(3600)
-	if acct.HasKey("duration") {
+	if (c.duration != int64(-1)) {
+		duration = int64(c.duration)
+	} else if (acct.HasKey("duration")) {
 		var err error
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "ERROR: Could not get duration: %s\n", err)
 			os.Exit(1)
 		}
 		duration, err = acct.Key("duration").Int64()
-		if duration > 43200 || duration < 900 {
-			fmt.Fprintf(os.Stderr, "ERROR: Duration needs to be a value in the range between 900 and 43200\n")
-			os.Exit(1)
-		}
 	}
-	if (c.duration != int64(3600)) {
-		duration = c.duration;
+
+	if duration > 43200 || duration < 900 {
+		fmt.Fprintf(os.Stderr, "ERROR: Duration needs to be a value in the range between 900 and 43200\n")
+		os.Exit(1)
 	}
 
 	if !acct.HasKey("sp_identity_url") {
