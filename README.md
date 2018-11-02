@@ -47,6 +47,12 @@ If you log into multiple accounts using different IDP URL's or session expiry ti
 $ aws-cli-federator -account <account name>
 ```
 
+Alternatively you are able to overwrite the duration parameter in the config file with a `-duration` flag.
+
+```
+$ aws-cli-federator -duration <duration>
+```
+
 This tool can also write the generated temporary credentials to the `~/.aws/credentials` file using the `-profile <section name>` flag.  The section and credentials will be created if they do not already exist and overwritten if they do.
 
 ```
