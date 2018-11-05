@@ -1,6 +1,6 @@
 language: go
 go:
-- 1.7.x
+- 1.9.x
 install: go get github.com/mitchellh/gox
 before_deploy: "make dist"
 deploy:
