@@ -15,6 +15,11 @@ Before you can start generating temporary credentials, you'll need to create a b
 sp_identity_url = <url to IDP initiated SP login>
 ```
 
+You can overwrite the default one hour key expiry duration in the configuration.
+```
+duration = <new duration in seconds>
+```
+
 You can then generate temporary credentials by running the `aws-cli-federator` utility:
 
 ```
@@ -36,16 +41,22 @@ export AWS_SESSION_TOKEN=<redacted>
 These credentials will remain valid until 2017-01-03 03:29:22 +0000 UTC
 ```
 
-If you log into multiple accounts using different IDP URL's, you can add multiple `sp_identity_url`'s (under unique section names) and request credentials like so:
+If you log into multiple accounts using different IDP URL's or session expiry times, you can add multiple `sp_identity_url`'s or `duration`'s (under unique section names) and request credentials like so:
 
 ```
-$ aws-cli-federator -account <account name>
+$ aws-cli-federator --account <account name>
+```
+
+Alternatively you are able to overwrite the duration parameter in the config file with a `-duration` flag.
+
+```
+$ aws-cli-federator --duration <duration>
 ```
 
 This tool can also write the generated temporary credentials to the `~/.aws/credentials` file using the `-profile <section name>` flag.  The section and credentials will be created if they do not already exist and overwritten if they do.
 
 ```
-$ aws-cli-federator -acount <account name> -profile <profile name>
+$ aws-cli-federator --acount <account name> --profile <profile name>
 ```
 
 If your IDP federates authentication to a number of different accounts, it can get difficult to keep track of which account number is which account.  To simplify this, you can add a list of alias' to the `federatedcli` configuration file to overwrite the account number with a more memerable name.

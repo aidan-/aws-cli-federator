@@ -26,6 +26,7 @@ type configuration struct {
 
 	account string
 	profile string
+	duration int64
 }
 
 var Version = "1.0.0"
@@ -41,6 +42,7 @@ func init() {
 	flag.StringVar(&c.account, "account", "", "set which AWS account configuration should be used")
 	flag.StringVar(&c.account, "acct", "", "set which AWS account configuration should be used (shorthand)")
 	flag.StringVar(&c.profile, "profile", "", "set which AWS credential profile the temporary credentials should be written to. Defaults to 'default'")
+	flag.Int64Var(&c.duration, "duration", int64(-1), "sets the duration of the CLI credentials. Defaults to 3600.")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", filepath.Base(os.Args[0]))
@@ -111,6 +113,24 @@ func main() {
 	acct, found := c.matchAccount()
 	if !found {
 		fmt.Fprintf(os.Stderr, "ERROR: Could not find configuration matching provided account name '%s'\n", c.account)
+		os.Exit(1)
+	}
+
+	// get key duration, defaults to 3600
+	var duration = int64(3600)
+	if (c.duration != int64(-1)) {
+		duration = int64(c.duration)
+	} else if (acct.HasKey("duration")) {
+		var err error
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "ERROR: Could not get duration: %s\n", err)
+			os.Exit(1)
+		}
+		duration, err = acct.Key("duration").Int64()
+	}
+
+	if duration > 43200 || duration < 900 {
+		fmt.Fprintf(os.Stderr, "ERROR: Duration needs to be a value in the range between 900 and 43200\n")
 		os.Exit(1)
 	}
 
@@ -236,9 +256,9 @@ func main() {
 
 	l.Printf("User has selected ARN: %s\n", roleToAssume)
 	l.Printf("Attempting to AssumeRoleWithSAML\n")
-	creds, err := aws.AssumeRole(roleToAssume)
+	creds, err := aws.AssumeRole(roleToAssume, duration)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "ERROR: Failed to assume role: %s", err)
+		fmt.Fprintf(os.Stderr, "ERROR: Failed to assume role: %s\n", err)
 		os.Exit(1)
 	}
 

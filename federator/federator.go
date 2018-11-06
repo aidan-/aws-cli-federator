@@ -12,6 +12,7 @@ import (
 	"github.com/RobotsAndPencils/go-saml"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"golang.org/x/net/html"
 )
@@ -103,19 +104,26 @@ func (a *Federator) GetRoles() ([]Role, error) {
 	return r, nil
 }
 
-func (a *Federator) AssumeRole(r Role) (Credentials, error) {
+func (a *Federator) AssumeRole(r Role, duration int64) (Credentials, error) {
 	if a.samlResponse == nil {
 		return Credentials{}, fmt.Errorf("You must call Login before assuming a role")
 	}
 
 	svc := sts.New(session.New())
 	params := &sts.AssumeRoleWithSAMLInput{
-		PrincipalArn:  aws.String(r.PrincipalArn()),
-		RoleArn:       aws.String(r.RoleArn()),
-		SAMLAssertion: aws.String(a.samlResponse64),
+		DurationSeconds: aws.Int64(duration),
+		PrincipalArn:    aws.String(r.PrincipalArn()),
+		RoleArn:         aws.String(r.RoleArn()),
+		SAMLAssertion:   aws.String(a.samlResponse64),
 	}
 
 	resp, err := svc.AssumeRoleWithSAML(params)
+	//print (err.Code());
+	if awsErr, ok := err.(awserr.Error); ok {
+		if ( awsErr.Code() == "ValidationError" ) {
+			return Credentials{}, fmt.Errorf("You need to either change the requested duration to be >900 and <3600 or alter the role's MaxSessionDuration via the console.")
+		}
+	}
 	if err != nil {
 		return Credentials{}, fmt.Errorf("Unable to assume role: %s", err)
 	}
