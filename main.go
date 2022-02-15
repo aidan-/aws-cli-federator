@@ -194,13 +194,14 @@ func main() {
 						roleMap[fmt.Sprintf("%s:role/%s", an, role.RoleName())] = role
 						printableRoles = append(printableRoles, fmt.Sprintf("%s:role/%s", an, role.RoleName()))
 					} else {
-						roleMap[fmt.Sprintf("%s", role.RoleArn())] = role
-						unmatchedRoles = append(unmatchedRoles, role.RoleArn())
+						roleMap[fmt.Sprintf("%s:role/%s", role.AccountId(), role.RoleName())] = role
+						unmatchedRoles = append(unmatchedRoles, fmt.Sprintf("%s:role/%s", role.AccountId(), role.RoleName()))
 					}
 				}
 			} else {
 				for _, role := range roles {
-					roleMap[fmt.Sprintf("%s", role.RoleArn())] = role
+					roleMap[fmt.Sprintf("%s:role/%s", role.AccountId(), role.RoleName())] = role
+					printableRoles = append(printableRoles, fmt.Sprintf("%s:role/%s", role.AccountId(), role.RoleName()))
 				}
 			}
 
